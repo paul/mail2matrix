@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Mail2matrix
+module Mail2Matrix
   # Gem identity information.
   module Identity
     def self.name

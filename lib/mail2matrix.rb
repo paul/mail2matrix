@@ -1,4 +1,7 @@
 # frozen_string_literal: true
 
-require "mail2matrix/identity"
-require "mail2matrix/cli"
+require_relative "mail2matrix/identity"
+require_relative "mail2matrix/cli"
+
+module Mail2Matrix
+end

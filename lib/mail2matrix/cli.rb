@@ -1,63 +1,101 @@
 # frozen_string_literal: true
 
-require "thor"
-require "thor/actions"
-require "runcom"
+require "forwardable"
+require "optparse"
+require "singleton"
 
-module Mail2matrix
+require "matrix_sdk"
+require "redcarpet"
+require "xdg"
+
+module Mail2Matrix
   # The Command Line Interface (CLI) for the gem.
-  class CLI < Thor
-    include Thor::Actions
+  class CLI
+    include Singleton
+    extend Forwardable
 
-    package_name Identity.version_label
-
-    def self.configuration
-      Runcom::Config.new Identity.name
+    def self.start
+      instance.start
     end
 
-    def initialize args = [], options = {}, config = {}
-      super args, options, config
-      @configuration = self.class.configuration
-    rescue Runcom::Errors::Base => error
-      abort error.message
-    end
-
-    desc "-c, [--config]", "Manage gem configuration."
-    map %w[-c --config] => :config
-    method_option :edit,
-                  aliases: "-e",
-                  desc: "Edit gem configuration.",
-                  type: :boolean,
-                  default: false
-    method_option :info,
-                  aliases: "-i",
-                  desc: "Print gem configuration.",
-                  type: :boolean,
-                  default: false
-    def config
-      path = configuration.path
-
-      if options.edit? then `#{ENV["EDITOR"]} #{path}`
-      elsif options.info?
-        path ? say(path) : say("Configuration doesn't exist.")
-      else help :config
-      end
-    end
-
-    desc "-v, [--version]", "Show gem version."
-    map %w[-v --version] => :version
-    def version
-      say Identity.version_label
-    end
-
-    desc "-h, [--help=COMMAND]", "Show this message or get help for a command."
-    map %w[-h --help] => :help
-    def help task = nil
-      say and super
+    def start
+      load_configuration
+      parse_arguments
+      read_stdin
+      configuration.finalize!
+      run
     end
 
     private
 
-    attr_reader :configuration
+    def load_configuration
+      XDG::Config.new
+                 .all
+                 .reverse
+                 .map { |dir| dir.join "mail2matrix.conf" }
+                 .select(&:exist?)
+                 .each { |file| configuration.load_from file }
+    end
+
+    def parse_arguments
+      parser.parse!
+      config.message.room = ARGV.join(" ") unless ARGV.empty?
+    end
+
+    def read_stdin
+      config.message.body = STDIN.read
+    end
+
+    def run
+      matrix = MatrixSdk::Client.new config.auth.server
+      matrix.api.access_token = config.auth.token
+
+      room = matrix.join_room config.message.room
+
+      text = <<~BODY
+        **#{config.message.subject}**
+
+        ```
+        #{config.message.body}
+        ```
+      BODY
+
+      markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true, fenced_code_blocks: true)
+      html = markdown.render(text)
+      puts text
+      puts html
+
+      p room.send_html(html, text)
+    end
+
+    def configuration
+      Mail2Matrix::Configuration
+    end
+    delegate [:config] => :configuration
+
+    def parser
+      OptionParser.new do |opts|
+        opts.banner = <<~BANNER
+          #{$PROGRAM_NAME} - A drop-in replacement for mail/mailx that will post messages to a Matrix room.
+
+          It tolerates all normal mail/mailx arguments, but ignores most of them. The only relevant ones are:
+        BANNER
+
+        opts.on("-sSUBJECT", "--subject=SUBJECT", "Used as a heading for the message") do |subject|
+          configuration.config.message.subject = subject
+        end
+
+        opts.on("-rFROM", "--from=FROM", "[Ignored]")
+
+        %w[- B D d E F i n t v ~ a c b r h A S].each do |x|
+          opts.on("-#{x}", "[Ignored]")
+        end
+
+        opts.on("-h", "--help", "Prints this help") do
+          puts opts
+          exit
+        end
+      end
+    end
   end
 end

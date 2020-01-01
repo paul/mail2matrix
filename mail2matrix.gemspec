@@ -4,11 +4,11 @@ $LOAD_PATH.append File.expand_path("lib", __dir__)
 require "mail2matrix/identity"
 
 Gem::Specification.new do |spec|
-  spec.name = Mail2matrix::Identity.name
-  spec.version = Mail2matrix::Identity.version
+  spec.name = Mail2Matrix::Identity.name
+  spec.version = Mail2Matrix::Identity.version
   spec.platform = Gem::Platform::RUBY
   spec.authors = ["Paul Sadauskas"]
-  spec.email = ["psadauskas@gmail.com"]
+  spec.email = ["paul@sadauskas.com"]
   spec.homepage = "https://github.com/paul/mail2matrix"
   spec.summary = ""
   spec.license = "MIT"
@@ -18,7 +18,6 @@ Gem::Specification.new do |spec|
     "changelog_uri" => "https://github.com/paul/mail2matrix/blob/master/CHANGES.md",
     "bug_tracker_uri" => "https://github.com/paul/mail2matrix/issues"
   }
-
 
   spec.required_ruby_version = "~> 2.6"
   spec.add_dependency "runcom", "~> 5.0"
