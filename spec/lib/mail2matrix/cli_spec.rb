@@ -2,60 +2,26 @@
 
 require "spec_helper"
 
-RSpec.describe Mail2matrix::CLI do
+RSpec.describe Mail2Matrix::CLI do
   let(:options) { [] }
   let(:command_line) { Array(command).concat options }
-  let(:cli) { described_class.start command_line }
-
-  shared_examples_for "a config command", :temp_dir do
-    context "with no options" do
-      it "prints help text" do
-        result = -> { cli }
-        expect(&result).to output(/Manage gem configuration./).to_stdout
-      end
-    end
-  end
-
-  shared_examples_for "a version command" do
-    it "prints version" do
-      result = -> { cli }
-      pattern = /#{Regexp.escape Mail2matrix::Identity.version_label}\n/
-
-      expect(result).to output(pattern).to_stdout
-    end
-  end
+  let(:stdin) { StringIO.new("") }
+  let(:cli) { described_class.start command_line, stdin }
 
   shared_examples_for "a help command" do
     it "prints usage" do
-      result = -> { cli }
-      pattern = /#{Regexp.escape Mail2matrix::Identity.version_label}\scommands:\n/
+      pattern = Mail2Matrix::CLI::BANNER
 
-      expect(result).to output(pattern).to_stdout
+      expect { cli }
+        .to raise_error(SystemExit)
+        .and output(include(pattern)).to_stdout
     end
   end
 
-  describe "--config" do
-    let(:command) { "--config" }
+  context "with no args" do
+    let(:command) { nil }
 
-    it_behaves_like "a config command"
-  end
-
-  describe "-c" do
-    let(:command) { "-c" }
-
-    it_behaves_like "a config command"
-  end
-
-  describe "--version" do
-    let(:command) { "--version" }
-
-    it_behaves_like "a version command"
-  end
-
-  describe "-v" do
-    let(:command) { "-v" }
-
-    it_behaves_like "a version command"
+    it_behaves_like "a help command"
   end
 
   describe "--help" do
@@ -66,12 +32,6 @@ RSpec.describe Mail2matrix::CLI do
 
   describe "-h" do
     let(:command) { "-h" }
-
-    it_behaves_like "a help command"
-  end
-
-  context "with no command" do
-    let(:command) { nil }
 
     it_behaves_like "a help command"
   end

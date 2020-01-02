@@ -20,6 +20,10 @@ Gem::Specification.new do |spec|
   }
 
   spec.required_ruby_version = "~> 2.6"
+  spec.add_dependency "dry-configurable", "~> 0.9.0"
+  spec.add_dependency "inifile", "~> 3.0.0"
+  spec.add_dependency "matrix_sdk", "~> 1.5.0"
+  spec.add_dependency "redcarpet", "~> 3.5.0"
   spec.add_dependency "runcom", "~> 5.0"
   spec.add_dependency "thor", "~> 0.20"
   spec.add_development_dependency "bundler-audit", "~> 0.6"

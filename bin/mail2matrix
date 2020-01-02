@@ -3,7 +3,6 @@
 
 require_relative "../lib/mail2matrix"
 require_relative "../lib/mail2matrix/cli"
-require_relative "../lib/mail2matrix/configuration"
 
 Process.setproctitle Mail2Matrix::Identity.version_label
 Mail2Matrix::CLI.start
