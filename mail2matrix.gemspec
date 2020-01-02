@@ -19,7 +19,7 @@ Gem::Specification.new do |spec|
     "bug_tracker_uri" => "https://github.com/paul/mail2matrix/issues"
   }
 
-  spec.required_ruby_version = "~> 2.6"
+  spec.required_ruby_version = "~> 2.5"
   spec.add_dependency "dry-configurable", "~> 0.9.0"
   spec.add_dependency "inifile", "~> 3.0.0"
   spec.add_dependency "matrix_sdk", "~> 1.5.0"
